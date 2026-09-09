@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { put } from "@vercel/blob";
 import { getAdminUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -43,9 +44,26 @@ export async function POST(req: NextRequest) {
     );
 
   const name = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-  const dir = path.join(process.cwd(), "public", "uploads");
-  await mkdir(dir, { recursive: true });
-  await writeFile(path.join(dir, name), Buffer.from(await file.arrayBuffer()));
 
-  return NextResponse.json({ url: `/uploads/${name}` });
+  // Vercel: filesystem read-only -> simpan ke Vercel Blob.
+  // Lokal (tanpa BLOB_READ_WRITE_TOKEN): simpan ke public/uploads.
+  try {
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      const blob = await put(`uploads/${name}`, file, {
+        access: "public",
+        contentType: file.type,
+      });
+      return NextResponse.json({ url: blob.url });
+    }
+    const dir = path.join(process.cwd(), "public", "uploads");
+    await mkdir(dir, { recursive: true });
+    await writeFile(path.join(dir, name), Buffer.from(await file.arrayBuffer()));
+    return NextResponse.json({ url: `/uploads/${name}` });
+  } catch (e) {
+    console.error("[upload] gagal menyimpan:", e instanceof Error ? e.message : e);
+    return NextResponse.json(
+      { error: "Gagal menyimpan file. Coba lagi." },
+      { status: 500 }
+    );
+  }
 }
