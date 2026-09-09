@@ -60,9 +60,16 @@ export async function POST(req: NextRequest) {
     await writeFile(path.join(dir, name), Buffer.from(await file.arrayBuffer()));
     return NextResponse.json({ url: `/uploads/${name}` });
   } catch (e) {
-    console.error("[upload] gagal menyimpan:", e instanceof Error ? e.message : e);
+    const detail = e instanceof Error ? e.message : String(e);
+    console.error("[upload] gagal menyimpan:", detail);
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      return NextResponse.json(
+        { error: "Blob storage belum dikonfigurasi: BLOB_READ_WRITE_TOKEN kosong dan filesystem Vercel read-only. Buat Blob Store lalu hubungkan ke project ini." },
+        { status: 500 }
+      );
+    }
     return NextResponse.json(
-      { error: "Gagal menyimpan file. Coba lagi." },
+      { error: `Gagal menyimpan ke Blob: ${detail}` },
       { status: 500 }
     );
   }
