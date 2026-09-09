@@ -72,6 +72,7 @@ export async function saveSettings(form: FormData) {
   const { updateSettings } = await import("./db");
   updateSettings(patch);
   revalidatePath("/", "layout");
+  return { ok: true };
 }
 
 // ---------- categories ----------
@@ -88,7 +89,7 @@ export async function saveCategory(form: FormData) {
     logo: String(form.get("logo") || ""),
     sort: Number(form.get("sort") || 0),
   };
-  if (!data.slug || !data.title_id) return;
+  if (!data.slug || !data.title_id) return { error: "Slug dan judul wajib diisi." };
   if (id) {
     db.prepare(
       "UPDATE service_categories SET slug=?, title_id=?, title_en=?, description_id=?, description_en=?, logo=?, sort=? WHERE id=?"
@@ -99,12 +100,14 @@ export async function saveCategory(form: FormData) {
     ).run(uid("cat_"), data.slug, data.title_id, data.title_en, data.description_id, data.description_en, data.logo, data.sort);
   }
   revalidatePath("/", "layout");
+  return { ok: true };
 }
 
 export async function deleteCategory(id: string) {
   await requireAdmin();
   getDb().prepare("DELETE FROM service_categories WHERE id=?").run(id);
   revalidatePath("/", "layout");
+  return { ok: true };
 }
 
 // ---------- services ----------
@@ -121,7 +124,7 @@ export async function saveService(form: FormData) {
     title_en: String(form.get("title_en") || "").trim(),
     sort: Number(form.get("sort") || 0),
   };
-  if (!data.category_id || !data.title_id) return;
+  if (!data.category_id || !data.title_id) return { error: "Kategori dan judul wajib diisi." };
   if (id) {
     db.prepare(
       "UPDATE services SET category_id=?, title_id=?, title_en=?, items_id=?, items_en=?, sort=? WHERE id=?"
@@ -132,12 +135,14 @@ export async function saveService(form: FormData) {
     ).run(uid("svc_"), data.category_id, data.title_id, data.title_en, JSON.stringify(itemsId), JSON.stringify(itemsEn), data.sort);
   }
   revalidatePath("/", "layout");
+  return { ok: true };
 }
 
 export async function deleteService(id: string) {
   await requireAdmin();
   getDb().prepare("DELETE FROM services WHERE id=?").run(id);
   revalidatePath("/", "layout");
+  return { ok: true };
 }
 
 // ---------- schedules ----------
@@ -157,7 +162,7 @@ export async function saveSchedule(form: FormData) {
     sort: Number(form.get("sort") || 0),
     is_active: form.get("is_active") ? 1 : 0,
   };
-  if (!data.title_id) return;
+  if (!data.title_id) return { error: "Judul wajib diisi." };
   if (id) {
     db.prepare(
       "UPDATE schedules SET title_id=?, title_en=?, body_id=?, body_en=?, badge_id=?, badge_en=?, image=?, pdf_url=?, sort=?, is_active=? WHERE id=?"
@@ -168,12 +173,14 @@ export async function saveSchedule(form: FormData) {
     ).run(uid("sch_"), data.title_id, data.title_en, data.body_id, data.body_en, data.badge_id, data.badge_en, data.image, data.pdf_url, data.sort, data.is_active);
   }
   revalidatePath("/", "layout");
+  return { ok: true };
 }
 
 export async function deleteSchedule(id: string) {
   await requireAdmin();
   getDb().prepare("DELETE FROM schedules WHERE id=?").run(id);
   revalidatePath("/", "layout");
+  return { ok: true };
 }
 
 // ---------- gallery ----------
@@ -185,19 +192,21 @@ export async function saveGallery(form: FormData) {
   const category = String(form.get("category") || "training");
   const image = String(form.get("image") || "");
   const sort = Number(form.get("sort") || 0);
-  if (!image) return;
+  if (!image) return { error: "Foto wajib diunggah." };
   if (id) {
     db.prepare("UPDATE gallery SET title=?, category=?, image=?, sort=? WHERE id=?").run(title, category, image, sort, id);
   } else {
     db.prepare("INSERT INTO gallery (id, title, category, image, sort) VALUES (?, ?, ?, ?, ?)").run(uid("gal_"), title, category, image, sort);
   }
   revalidatePath("/", "layout");
+  return { ok: true };
 }
 
 export async function deleteGallery(id: string) {
   await requireAdmin();
   getDb().prepare("DELETE FROM gallery WHERE id=?").run(id);
   revalidatePath("/", "layout");
+  return { ok: true };
 }
 
 // ---------- clients ----------
@@ -208,19 +217,21 @@ export async function saveClient(form: FormData) {
   const name = String(form.get("name") || "").trim();
   const logo = String(form.get("logo") || "");
   const sort = Number(form.get("sort") || 0);
-  if (!name || !logo) return;
+  if (!name || !logo) return { error: "Nama dan logo wajib diisi." };
   if (id) {
     db.prepare("UPDATE clients SET name=?, logo=?, sort=? WHERE id=?").run(name, logo, sort, id);
   } else {
     db.prepare("INSERT INTO clients (id, name, logo, sort) VALUES (?, ?, ?, ?)").run(uid("cli_"), name, logo, sort);
   }
   revalidatePath("/", "layout");
+  return { ok: true };
 }
 
 export async function deleteClient(id: string) {
   await requireAdmin();
   getDb().prepare("DELETE FROM clients WHERE id=?").run(id);
   revalidatePath("/", "layout");
+  return { ok: true };
 }
 
 // ---------- messages ----------

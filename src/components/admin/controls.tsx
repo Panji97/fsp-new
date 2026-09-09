@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Trash2 } from "lucide-react";
+import { toast } from "@/components/ui/toast";
 
 export function AdminTitle({ title, desc }: { title: string; desc?: string }) {
   return (
@@ -18,7 +19,7 @@ export function DeleteButton({
   name,
 }: {
   id: string;
-  action: (id: string) => Promise<void>;
+  action: (id: string) => Promise<{ error?: string; ok?: boolean } | void>;
   name?: string;
 }) {
   const [pending, start] = useTransition();
@@ -30,7 +31,11 @@ export function DeleteButton({
         <span className="text-slate-600">Hapus{name ? ` “${name}”` : ""}?</span>
         <button
           disabled={pending}
-          onClick={() => start(async () => { await action(id); })}
+          onClick={() => start(async () => {
+            const res = await action(id);
+            if (res && "error" in res && res.error) toast(res.error, "error");
+            else toast("Berhasil dihapus.", "success");
+          })}
           className="cursor-pointer rounded-md bg-red-600 px-2.5 py-1 font-bold text-white hover:bg-red-700"
         >
           Ya

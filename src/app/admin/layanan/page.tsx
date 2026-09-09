@@ -3,6 +3,8 @@ import { getAdminUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { saveCategory, deleteCategory, saveService, deleteService } from "@/lib/actions";
 import { AdminTitle, DeleteButton, Toggle } from "@/components/admin/controls";
+import { CrudForm } from "@/components/admin/crud-form";
+import { UploadField } from "@/components/admin/upload-field";
 import { Input, Textarea } from "@/components/ui/fields";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,16 +25,16 @@ export default async function AdminLayanan() {
       <AdminTitle title="Layanan" desc="Kelola kategori sertifikasi & kelompok skema. Perubahan langsung tampil di /layanan." />
 
       <Toggle label="+ Tambah kategori baru">
-        <form action={saveCategory} className="grid gap-1 sm:grid-cols-2">
+        <CrudForm action={saveCategory} className="grid gap-1 sm:grid-cols-2">
           <div className={inputCls}><label className="mb-1 block text-xs font-bold">Slug (unik, mis. bnsp)</label><Input name="slug" required /></div>
-          <div className={inputCls}><label className="mb-1 block text-xs font-bold">Logo (path, mis. /images/bnsp-logo.webp)</label><Input name="logo" /></div>
+          <div className={inputCls}><label className="mb-1 block text-xs font-bold">Logo</label><UploadField name="logo" /></div>
           <div className={inputCls}><label className="mb-1 block text-xs font-bold">Judul (ID)</label><Input name="title_id" required /></div>
           <div className={inputCls}><label className="mb-1 block text-xs font-bold">Judul (EN)</label><Input name="title_en" /></div>
           <div className={inputCls}><label className="mb-1 block text-xs font-bold">Deskripsi (ID)</label><Textarea name="description_id" /></div>
           <div className={inputCls}><label className="mb-1 block text-xs font-bold">Deskripsi (EN)</label><Textarea name="description_en" /></div>
           <div className={inputCls}><label className="mb-1 block text-xs font-bold">Urutan</label><Input name="sort" type="number" defaultValue={cats.length + 1} /></div>
           <div className="sm:col-span-2"><Button type="submit" size="sm">Simpan kategori</Button></div>
-        </form>
+        </CrudForm>
       </Toggle>
 
       <div className="mt-4 space-y-4">
@@ -47,10 +49,10 @@ export default async function AdminLayanan() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <form action={saveCategory} className="grid gap-1 rounded-lg bg-sand p-4 sm:grid-cols-2">
+                <CrudForm action={saveCategory} className="grid gap-1 rounded-lg bg-sand p-4 sm:grid-cols-2">
                   <input type="hidden" name="id" value={c.id} />
                   <div className={inputCls}><label className="mb-1 block text-xs font-bold">Slug</label><Input name="slug" defaultValue={c.slug} required /></div>
-                  <div className={inputCls}><label className="mb-1 block text-xs font-bold">Logo</label><Input name="logo" defaultValue={c.logo} /></div>
+                  <div className={inputCls}><label className="mb-1 block text-xs font-bold">Logo</label><UploadField name="logo" defaultValue={c.logo} /></div>
                   <div className={inputCls}><label className="mb-1 block text-xs font-bold">Judul (ID)</label><Input name="title_id" defaultValue={c.title_id} required /></div>
                   <div className={inputCls}><label className="mb-1 block text-xs font-bold">Judul (EN)</label><Input name="title_en" defaultValue={c.title_en} /></div>
                   <div className={inputCls}><label className="mb-1 block text-xs font-bold">Deskripsi (ID)</label><Textarea name="description_id" defaultValue={c.description_id} /></div>
@@ -60,14 +62,14 @@ export default async function AdminLayanan() {
                     <Button type="submit" size="sm">Simpan</Button>
                     <DeleteButton id={c.id} action={deleteCategory} name={c.title_id} />
                   </div>
-                </form>
+                </CrudForm>
 
                 <div>
                   <p className="mb-2 text-[13px] font-bold text-slate-600">KELOMPOK SKEMA</p>
                   <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
                     {items.map((s) => (
                       <li key={s.id} className="p-3">
-                        <form action={saveService} className="grid gap-1 sm:grid-cols-2">
+                        <CrudForm action={saveService} className="grid gap-1 sm:grid-cols-2">
                           <input type="hidden" name="id" value={s.id} />
                           <input type="hidden" name="category_id" value={c.id} />
                           <div className={inputCls}><label className="mb-1 block text-xs font-bold">Judul (ID)</label><Input name="title_id" defaultValue={s.title_id} required /></div>
@@ -79,16 +81,16 @@ export default async function AdminLayanan() {
                             <Button type="submit" size="sm" variant="outline">Simpan</Button>
                             <DeleteButton id={s.id} action={deleteService} name={s.title_id} />
                           </div>
-                        </form>
+                        </CrudForm>
                       </li>
                     ))}
                   </ul>
-                  <form action={saveService} className="mt-2 flex flex-col gap-2 rounded-lg border border-dashed border-slate-300 p-3 sm:flex-row">
+                  <CrudForm action={saveService} className="mt-2 flex flex-col gap-2 rounded-lg border border-dashed border-slate-300 p-3 sm:flex-row">
                     <input type="hidden" name="category_id" value={c.id} />
                     <Input name="title_id" placeholder="Judul kelompok baru (ID)" required className="flex-1" />
                     <Input name="title_en" placeholder="Judul (EN)" className="flex-1" />
                     <Button type="submit" size="sm">+ Tambah</Button>
-                  </form>
+                  </CrudForm>
                 </div>
               </CardContent>
             </Card>

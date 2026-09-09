@@ -55,14 +55,14 @@ export default async function AdminLayout({
           </div>
         </div>
       </header>
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[220px_1fr]">
-        <aside className="h-fit rounded-xl border border-slate-200 bg-white p-2 lg:sticky lg:top-20">
-          <nav className="grid gap-1 lg:block">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:grid lg:grid-cols-[220px_1fr] lg:gap-6">
+        <aside className="no-scrollbar -mx-4 mb-4 overflow-x-auto px-4 lg:mx-0 lg:mb-0 lg:h-fit lg:overflow-visible lg:rounded-xl lg:border lg:border-slate-200 lg:bg-white lg:p-2 lg:px-2">
+          <nav className="flex gap-1.5 pb-1 lg:grid lg:pb-0" aria-label="Menu admin">
             {menu.map((m) => (
               <Link
                 key={m.href}
                 href={m.href}
-                className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-sand"
+                className="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-slate-200 bg-white px-3.5 py-2 text-[13px] font-bold text-slate-700 shadow-sm hover:bg-sand lg:rounded-lg lg:border-0 lg:bg-transparent lg:px-3 lg:py-2.5 lg:text-sm lg:font-semibold lg:shadow-none"
               >
                 <m.icon size={17} className="text-brand-600" />
                 {m.label}

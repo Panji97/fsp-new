@@ -3,7 +3,6 @@
 import { ExternalLink, FileText } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { PageHero } from "@/components/site/sections";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Schedule } from "@/lib/db";
 
@@ -25,8 +24,7 @@ export function InformasiContent({ schedules }: { schedules: Schedule[] }) {
               <img src={s.image} alt={pick(s.title_id, s.title_en)} className="max-h-full w-auto object-contain" />
             </div>
             <CardContent className="flex flex-1 flex-col pt-5">
-              <Badge>{pick(s.badge_id, s.badge_en)}</Badge>
-              <h2 className="mt-2 text-xl font-bold text-navy-900">{pick(s.title_id, s.title_en)}</h2>
+              <h2 className="mt-0 text-xl font-bold text-navy-900">{pick(s.title_id, s.title_en)}</h2>
               <p className="mt-1.5 flex-1 text-sm leading-relaxed text-slate-600">
                 {pick(s.body_id, s.body_en)}
               </p>

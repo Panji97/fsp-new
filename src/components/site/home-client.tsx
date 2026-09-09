@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, Send } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { submitMessage } from "@/lib/actions";
+import { toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/fields";
 import { Badge } from "@/components/ui/badge";
@@ -111,7 +112,12 @@ export function ContactForm() {
         const res = await submitMessage(new FormData(e.currentTarget));
         setState(res);
         setPending(false);
-        if (res.ok) (e.target as HTMLFormElement).reset();
+        if (res.ok) {
+          (e.target as HTMLFormElement).reset();
+          toast(lang === "en" ? "Message sent." : "Pesan terkirim.", "success");
+        } else if (res.error) {
+          toast(res.error, "error");
+        }
       }}
       className="space-y-4"
     >

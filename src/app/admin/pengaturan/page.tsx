@@ -3,6 +3,7 @@ import { getAdminUser } from "@/lib/auth";
 import { getSettings } from "@/lib/db";
 import { saveSettings } from "@/lib/actions";
 import { AdminTitle } from "@/components/admin/controls";
+import { CrudForm } from "@/components/admin/crud-form";
 import { Input, Textarea } from "@/components/ui/fields";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,7 +31,7 @@ export default async function AdminPengaturan() {
   return (
     <div>
       <AdminTitle title="Pengaturan" desc="Identitas perusahaan & konten utama website (bilingual ID/EN)." />
-      <form action={saveSettings} className="grid gap-4 lg:grid-cols-2">
+      <CrudForm action={saveSettings} className="grid gap-4 lg:grid-cols-2" success="Pengaturan tersimpan.">
         <Card>
           <CardHeader><CardTitle className="text-base">Identitas & Kontak</CardTitle></CardHeader>
           <CardContent>
@@ -73,7 +74,7 @@ export default async function AdminPengaturan() {
         <div className="lg:col-span-2">
           <Button type="submit">Simpan semua pengaturan</Button>
         </div>
-      </form>
+      </CrudForm>
     </div>
   );
 }

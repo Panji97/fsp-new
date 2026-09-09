@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/lib/i18n";
+import { Toaster } from "@/components/ui/toast";
 import { SiteHeader } from "@/components/site/header";
 import { SiteFooter } from "@/components/site/footer";
 import { getSettings } from "@/lib/db";
@@ -39,6 +40,7 @@ export default function RootLayout({
             {children}
           </main>
           <SiteFooter settings={settings} />
+          <Toaster />
         </LanguageProvider>
       </body>
     </html>
