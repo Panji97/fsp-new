@@ -58,11 +58,21 @@ export type Message = {
   is_read: number;
 };
 
-const dbUrl =
-  process.env.TURSO_DATABASE_URL ??
-  process.env.DATABASE_URL ??
-  "file:./fsp.db";
-const authToken = process.env.TURSO_AUTH_TOKEN ?? undefined;
+/** Pilih URL DB yang valid. Abaikan nilai dengan skema tak didukung
+ *  (mis. DATABASE_URL postgres:// dari integrasi lain) dan kupas tanda
+ *  kutip yang tak sengaja ikut ter-copy dari file .env. */
+function pickUrl(): string {
+  const candidates = [process.env.TURSO_DATABASE_URL, process.env.DATABASE_URL];
+  for (const raw of candidates) {
+    if (!raw) continue;
+    const u = raw.trim().replace(/^["']|["']$/g, "");
+    if (/^(libsql|https?|wss?|file):\/\//.test(u)) return u;
+  }
+  return "file:./fsp.db";
+}
+
+const dbUrl = pickUrl();
+const authToken = process.env.TURSO_AUTH_TOKEN?.trim().replace(/^["']|["']$/g, "") || undefined;
 
 declare global {
   var __fspClient: LibsqlClient | undefined;
@@ -359,6 +369,11 @@ export async function initDb(): Promise<void> {
       await seed();
     })().catch((e) => {
       globalThis.__fspInit = undefined;
+      console.error(
+        "[fsp-db] init gagal. Backend:",
+        isRemoteDb() ? "turso-remote" : "sqlite-local(file:./fsp.db)",
+        "— cek TURSO_DATABASE_URL & TURSO_AUTH_TOKEN di environment."
+      );
       throw e;
     });
   }
