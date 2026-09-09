@@ -2,8 +2,22 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { getDb } from "./db";
-import { uid } from "./utils";
+import {
+  createMessage,
+  deleteCategoryData,
+  deleteClientData,
+  deleteGalleryData,
+  deleteMessageRow,
+  deleteScheduleData,
+  deleteServiceData,
+  saveCategoryData,
+  saveClientData,
+  saveGalleryData,
+  saveScheduleData,
+  saveServiceData,
+  setMessageRead,
+  updateSettings,
+} from "./db";
 import {
   checkCredentials,
   createAdminSession,
@@ -46,10 +60,7 @@ export async function submitMessage(form: FormData) {
   const email = String(form.get("email") || "").trim().slice(0, 120);
   const message = String(form.get("message") || "").trim().slice(0, 2000);
   if (!name || !email || !message) return { error: "Lengkapi semua field." };
-  const db = getDb();
-  db.prepare(
-    "INSERT INTO messages (id, name, email, message, created_at, is_read) VALUES (?, ?, ?, ?, ?, 0)"
-  ).run(uid("msg_"), name, email, message, new Date().toISOString());
+  await createMessage(name, email, message);
   return { ok: true };
 }
 
@@ -69,8 +80,7 @@ export async function saveSettings(form: FormData) {
   }
   const slides = lines(String(form.get("hero_slides") || ""));
   if (slides.length) patch.hero_slides = JSON.stringify(slides);
-  const { updateSettings } = await import("./db");
-  updateSettings(patch);
+  await updateSettings(patch);
   revalidatePath("/", "layout");
   return { ok: true };
 }
@@ -78,34 +88,26 @@ export async function saveSettings(form: FormData) {
 // ---------- categories ----------
 export async function saveCategory(form: FormData) {
   await requireAdmin();
-  const db = getDb();
-  const id = String(form.get("id") || "");
-  const data = {
-    slug: String(form.get("slug") || "").trim(),
-    title_id: String(form.get("title_id") || "").trim(),
+  const id = String(form.get("id") || "") || null;
+  const slug = String(form.get("slug") || "").trim();
+  const title_id = String(form.get("title_id") || "").trim();
+  if (!slug || !title_id) return { error: "Slug dan judul wajib diisi." };
+  await saveCategoryData(id, {
+    slug,
+    title_id,
     title_en: String(form.get("title_en") || "").trim(),
     description_id: String(form.get("description_id") || ""),
     description_en: String(form.get("description_en") || ""),
     logo: String(form.get("logo") || ""),
     sort: Number(form.get("sort") || 0),
-  };
-  if (!data.slug || !data.title_id) return { error: "Slug dan judul wajib diisi." };
-  if (id) {
-    db.prepare(
-      "UPDATE service_categories SET slug=?, title_id=?, title_en=?, description_id=?, description_en=?, logo=?, sort=? WHERE id=?"
-    ).run(data.slug, data.title_id, data.title_en, data.description_id, data.description_en, data.logo, data.sort, id);
-  } else {
-    db.prepare(
-      "INSERT INTO service_categories (id, slug, title_id, title_en, description_id, description_en, logo, sort) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-    ).run(uid("cat_"), data.slug, data.title_id, data.title_en, data.description_id, data.description_en, data.logo, data.sort);
-  }
+  });
   revalidatePath("/", "layout");
   return { ok: true };
 }
 
 export async function deleteCategory(id: string) {
   await requireAdmin();
-  getDb().prepare("DELETE FROM service_categories WHERE id=?").run(id);
+  await deleteCategoryData(id);
   revalidatePath("/", "layout");
   return { ok: true };
 }
@@ -113,34 +115,27 @@ export async function deleteCategory(id: string) {
 // ---------- services ----------
 export async function saveService(form: FormData) {
   await requireAdmin();
-  const db = getDb();
-  const id = String(form.get("id") || "");
+  const id = String(form.get("id") || "") || null;
+  const category_id = String(form.get("category_id") || "");
+  const title_id = String(form.get("title_id") || "").trim();
+  if (!category_id || !title_id) return { error: "Kategori dan judul wajib diisi." };
   const itemsId = lines(String(form.get("items_id") || ""));
   const itemsEnRaw = String(form.get("items_en") || "");
-  const itemsEn = itemsEnRaw.trim() ? lines(itemsEnRaw) : itemsId;
-  const data = {
-    category_id: String(form.get("category_id") || ""),
-    title_id: String(form.get("title_id") || "").trim(),
+  await saveServiceData(id, {
+    category_id,
+    title_id,
     title_en: String(form.get("title_en") || "").trim(),
+    itemsId,
+    itemsEn: itemsEnRaw.trim() ? lines(itemsEnRaw) : itemsId,
     sort: Number(form.get("sort") || 0),
-  };
-  if (!data.category_id || !data.title_id) return { error: "Kategori dan judul wajib diisi." };
-  if (id) {
-    db.prepare(
-      "UPDATE services SET category_id=?, title_id=?, title_en=?, items_id=?, items_en=?, sort=? WHERE id=?"
-    ).run(data.category_id, data.title_id, data.title_en, JSON.stringify(itemsId), JSON.stringify(itemsEn), data.sort, id);
-  } else {
-    db.prepare(
-      "INSERT INTO services (id, category_id, title_id, title_en, items_id, items_en, sort) VALUES (?, ?, ?, ?, ?, ?, ?)"
-    ).run(uid("svc_"), data.category_id, data.title_id, data.title_en, JSON.stringify(itemsId), JSON.stringify(itemsEn), data.sort);
-  }
+  });
   revalidatePath("/", "layout");
   return { ok: true };
 }
 
 export async function deleteService(id: string) {
   await requireAdmin();
-  getDb().prepare("DELETE FROM services WHERE id=?").run(id);
+  await deleteServiceData(id);
   revalidatePath("/", "layout");
   return { ok: true };
 }
@@ -148,10 +143,11 @@ export async function deleteService(id: string) {
 // ---------- schedules ----------
 export async function saveSchedule(form: FormData) {
   await requireAdmin();
-  const db = getDb();
-  const id = String(form.get("id") || "");
-  const data = {
-    title_id: String(form.get("title_id") || "").trim(),
+  const id = String(form.get("id") || "") || null;
+  const title_id = String(form.get("title_id") || "").trim();
+  if (!title_id) return { error: "Judul wajib diisi." };
+  await saveScheduleData(id, {
+    title_id,
     title_en: String(form.get("title_en") || "").trim(),
     body_id: String(form.get("body_id") || ""),
     body_en: String(form.get("body_en") || ""),
@@ -161,24 +157,14 @@ export async function saveSchedule(form: FormData) {
     pdf_url: String(form.get("pdf_url") || ""),
     sort: Number(form.get("sort") || 0),
     is_active: form.get("is_active") ? 1 : 0,
-  };
-  if (!data.title_id) return { error: "Judul wajib diisi." };
-  if (id) {
-    db.prepare(
-      "UPDATE schedules SET title_id=?, title_en=?, body_id=?, body_en=?, badge_id=?, badge_en=?, image=?, pdf_url=?, sort=?, is_active=? WHERE id=?"
-    ).run(data.title_id, data.title_en, data.body_id, data.body_en, data.badge_id, data.badge_en, data.image, data.pdf_url, data.sort, data.is_active, id);
-  } else {
-    db.prepare(
-      "INSERT INTO schedules (id, title_id, title_en, body_id, body_en, badge_id, badge_en, image, pdf_url, sort, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-    ).run(uid("sch_"), data.title_id, data.title_en, data.body_id, data.body_en, data.badge_id, data.badge_en, data.image, data.pdf_url, data.sort, data.is_active);
-  }
+  });
   revalidatePath("/", "layout");
   return { ok: true };
 }
 
 export async function deleteSchedule(id: string) {
   await requireAdmin();
-  getDb().prepare("DELETE FROM schedules WHERE id=?").run(id);
+  await deleteScheduleData(id);
   revalidatePath("/", "layout");
   return { ok: true };
 }
@@ -186,25 +172,22 @@ export async function deleteSchedule(id: string) {
 // ---------- gallery ----------
 export async function saveGallery(form: FormData) {
   await requireAdmin();
-  const db = getDb();
-  const id = String(form.get("id") || "");
-  const title = String(form.get("title") || "");
-  const category = String(form.get("category") || "training");
+  const id = String(form.get("id") || "") || null;
   const image = String(form.get("image") || "");
-  const sort = Number(form.get("sort") || 0);
   if (!image) return { error: "Foto wajib diunggah." };
-  if (id) {
-    db.prepare("UPDATE gallery SET title=?, category=?, image=?, sort=? WHERE id=?").run(title, category, image, sort, id);
-  } else {
-    db.prepare("INSERT INTO gallery (id, title, category, image, sort) VALUES (?, ?, ?, ?, ?)").run(uid("gal_"), title, category, image, sort);
-  }
+  await saveGalleryData(id, {
+    title: String(form.get("title") || ""),
+    category: String(form.get("category") || "training"),
+    image,
+    sort: Number(form.get("sort") || 0),
+  });
   revalidatePath("/", "layout");
   return { ok: true };
 }
 
 export async function deleteGallery(id: string) {
   await requireAdmin();
-  getDb().prepare("DELETE FROM gallery WHERE id=?").run(id);
+  await deleteGalleryData(id);
   revalidatePath("/", "layout");
   return { ok: true };
 }
@@ -212,24 +195,22 @@ export async function deleteGallery(id: string) {
 // ---------- clients ----------
 export async function saveClient(form: FormData) {
   await requireAdmin();
-  const db = getDb();
-  const id = String(form.get("id") || "");
+  const id = String(form.get("id") || "") || null;
   const name = String(form.get("name") || "").trim();
   const logo = String(form.get("logo") || "");
-  const sort = Number(form.get("sort") || 0);
   if (!name || !logo) return { error: "Nama dan logo wajib diisi." };
-  if (id) {
-    db.prepare("UPDATE clients SET name=?, logo=?, sort=? WHERE id=?").run(name, logo, sort, id);
-  } else {
-    db.prepare("INSERT INTO clients (id, name, logo, sort) VALUES (?, ?, ?, ?)").run(uid("cli_"), name, logo, sort);
-  }
+  await saveClientData(id, {
+    name,
+    logo,
+    sort: Number(form.get("sort") || 0),
+  });
   revalidatePath("/", "layout");
   return { ok: true };
 }
 
 export async function deleteClient(id: string) {
   await requireAdmin();
-  getDb().prepare("DELETE FROM clients WHERE id=?").run(id);
+  await deleteClientData(id);
   revalidatePath("/", "layout");
   return { ok: true };
 }
@@ -237,12 +218,14 @@ export async function deleteClient(id: string) {
 // ---------- messages ----------
 export async function markMessage(id: string, read: boolean) {
   await requireAdmin();
-  getDb().prepare("UPDATE messages SET is_read=? WHERE id=?").run(read ? 1 : 0, id);
+  await setMessageRead(id, read);
   revalidatePath("/admin/pesan");
+  return { ok: true };
 }
 
 export async function deleteMessage(id: string) {
   await requireAdmin();
-  getDb().prepare("DELETE FROM messages WHERE id=?").run(id);
+  await deleteMessageRow(id);
   revalidatePath("/admin/pesan");
+  return { ok: true };
 }

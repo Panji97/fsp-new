@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getAdminUser } from "@/lib/auth";
-import { getDb } from "@/lib/db";
+import { getCategories, getServices } from "@/lib/db";
 import { saveCategory, deleteCategory, saveService, deleteService } from "@/lib/actions";
 import { AdminTitle, DeleteButton, Toggle } from "@/components/admin/controls";
 import { CrudForm } from "@/components/admin/crud-form";
@@ -16,9 +16,8 @@ const inputCls = "mb-3";
 
 export default async function AdminLayanan() {
   if (!(await getAdminUser())) redirect("/admin/login");
-  const db = getDb();
-  const cats = db.prepare("SELECT * FROM service_categories ORDER BY sort").all() as import("@/lib/db").ServiceCategory[];
-  const svcs = db.prepare("SELECT * FROM services ORDER BY category_id, sort").all() as import("@/lib/db").Service[];
+  const cats = await getCategories();
+  const svcs = await getServices();
 
   return (
     <div>

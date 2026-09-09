@@ -1,13 +1,10 @@
-import { getDb } from "@/lib/db";
+import { getGallery } from "@/lib/db";
 import { GaleriContent } from "./content";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Galeri" };
 
-export default function GaleriPage() {
-  const db = getDb();
-  const items = db
-    .prepare("SELECT * FROM gallery ORDER BY sort")
-    .all() as import("@/lib/db").GalleryItem[];
+export default async function GaleriPage() {
+  const items = await getGallery();
   return <GaleriContent items={items} />;
 }

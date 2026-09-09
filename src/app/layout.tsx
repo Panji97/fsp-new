@@ -25,12 +25,12 @@ export const metadata: Metadata = {
   ),
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const settings = getSettings();
+  const settings = await getSettings();
   return (
     <html lang="id" className={jakarta.variable}>
       <body className="flex min-h-screen flex-col bg-white font-sans text-slate-800 antialiased">

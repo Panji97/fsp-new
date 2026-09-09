@@ -25,7 +25,7 @@ function Field({ label, name, value, textarea, rows }: { label: string; name: st
 
 export default async function AdminPengaturan() {
   if (!(await getAdminUser())) redirect("/admin/login");
-  const s = getSettings();
+  const s = await getSettings();
   const slides: string[] = JSON.parse(s.hero_slides || "[]");
 
   return (

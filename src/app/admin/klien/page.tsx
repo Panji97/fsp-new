@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getAdminUser } from "@/lib/auth";
-import { getDb } from "@/lib/db";
+import { getClients } from "@/lib/db";
 import { saveClient, deleteClient } from "@/lib/actions";
 import { AdminTitle, DeleteButton, Toggle } from "@/components/admin/controls";
 import { CrudForm } from "@/components/admin/crud-form";
@@ -12,8 +12,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminKlien() {
   if (!(await getAdminUser())) redirect("/admin/login");
-  const db = getDb();
-  const rows = db.prepare("SELECT * FROM clients ORDER BY sort").all() as import("@/lib/db").Client[];
+  const rows = await getClients();
 
   return (
     <div>

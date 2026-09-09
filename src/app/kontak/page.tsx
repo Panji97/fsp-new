@@ -4,6 +4,6 @@ import { KontakContent } from "./content";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Kontak" };
 
-export default function KontakPage() {
-  return <KontakContent settings={getSettings()} />;
+export default async function KontakPage() {
+  return <KontakContent settings={await getSettings()} />;
 }

@@ -5,6 +5,6 @@ export const dynamic = "force-dynamic";
 
 export const metadata = { title: "Tentang Kami" };
 
-export default function TentangPage() {
-  return <TentangContent settings={getSettings()} />;
+export default async function TentangPage() {
+  return <TentangContent settings={await getSettings()} />;
 }

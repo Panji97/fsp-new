@@ -1,13 +1,10 @@
-import { getDb } from "@/lib/db";
+import { getSchedules } from "@/lib/db";
 import { InformasiContent } from "./content";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Informasi Jadwal" };
 
-export default function InformasiPage() {
-  const db = getDb();
-  const schedules = db
-    .prepare("SELECT * FROM schedules WHERE is_active=1 ORDER BY sort")
-    .all() as import("@/lib/db").Schedule[];
+export default async function InformasiPage() {
+  const schedules = await getSchedules(true);
   return <InformasiContent schedules={schedules} />;
 }

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getAdminUser } from "@/lib/auth";
-import { getDb } from "@/lib/db";
+import { getMessages } from "@/lib/db";
 import { AdminTitle } from "@/components/admin/controls";
 import { MessageButtons } from "@/components/admin/message-buttons";
 import { Badge } from "@/components/ui/badge";
@@ -10,10 +10,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminPesan() {
   if (!(await getAdminUser())) redirect("/admin/login");
-  const db = getDb();
-  const rows = db
-    .prepare("SELECT * FROM messages ORDER BY created_at DESC")
-    .all() as import("@/lib/db").Message[];
+  const rows = await getMessages();
 
   return (
     <div>

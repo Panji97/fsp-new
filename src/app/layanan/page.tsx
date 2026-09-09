@@ -1,17 +1,12 @@
-import { getDb, serviceWithItems } from "@/lib/db";
+import { getCategories, getServices, serviceWithItems } from "@/lib/db";
 import { LayananContent } from "./content";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Layanan Kami" };
 
-export default function LayananPage() {
-  const db = getDb();
-  const categories = db
-    .prepare("SELECT * FROM service_categories ORDER BY sort, title_id")
-    .all() as import("@/lib/db").ServiceCategory[];
-  const rows = db
-    .prepare("SELECT * FROM services ORDER BY sort")
-    .all() as import("@/lib/db").Service[];
+export default async function LayananPage() {
+  const categories = await getCategories();
+  const rows = await getServices();
   const groups = rows.map((r) => {
     const w = serviceWithItems(r);
     return {

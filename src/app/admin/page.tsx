@@ -9,7 +9,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { getAdminUser } from "@/lib/auth";
-import { getDb } from "@/lib/db";
+import { countTable, countUnread, getMessages } from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -18,21 +18,21 @@ export const dynamic = "force-dynamic";
 export default async function AdminDashboard() {
   const user = await getAdminUser();
   if (!user) redirect("/admin/login");
-  const db = getDb();
-  const count = (t: string) =>
-    (db.prepare(`SELECT COUNT(*) AS c FROM ${t}`).get() as { c: number }).c;
-  const unread = (
-    db.prepare("SELECT COUNT(*) AS c FROM messages WHERE is_read=0").get() as { c: number }
-  ).c;
-  const recent = db
-    .prepare("SELECT * FROM messages ORDER BY created_at DESC LIMIT 5")
-    .all() as import("@/lib/db").Message[];
+  const [catCount, svcCount, schCount, galCount, cliCount] = await Promise.all([
+    countTable("service_categories"),
+    countTable("services"),
+    countTable("schedules"),
+    countTable("gallery"),
+    countTable("clients"),
+  ]);
+  const unread = await countUnread();
+  const recent = (await getMessages()).slice(0, 5);
 
   const cards = [
-    { href: "/admin/layanan", icon: Layers, label: "Kategori & Skema Layanan", value: `${count("service_categories")} kategori · ${count("services")} kelompok` },
-    { href: "/admin/informasi", icon: CalendarDays, label: "Jadwal & Informasi", value: `${count("schedules")} kartu jadwal` },
-    { href: "/admin/galeri", icon: ImageIcon, label: "Galeri", value: `${count("gallery")} foto` },
-    { href: "/admin/klien", icon: Building2, label: "Klien", value: `${count("clients")} logo` },
+    { href: "/admin/layanan", icon: Layers, label: "Kategori & Skema Layanan", value: `${catCount} kategori · ${svcCount} kelompok` },
+    { href: "/admin/informasi", icon: CalendarDays, label: "Jadwal & Informasi", value: `${schCount} kartu jadwal` },
+    { href: "/admin/galeri", icon: ImageIcon, label: "Galeri", value: `${galCount} foto` },
+    { href: "/admin/klien", icon: Building2, label: "Klien", value: `${cliCount} logo` },
     { href: "/admin/pesan", icon: Inbox, label: "Pesan Masuk", value: `${unread} belum dibaca` },
   ];
 
