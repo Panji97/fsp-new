@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MapPin, Phone, Mail, MessageCircle } from "lucide-react";
+import { MapPin, Phone, Mail } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { waLink } from "@/lib/utils";
 
@@ -105,7 +105,13 @@ export function SiteFooter({
         aria-label="Chat WhatsApp"
         className="fixed bottom-5 right-5 z-50 inline-flex h-13 w-13 items-center justify-center rounded-full bg-[#25D366] p-3.5 text-white shadow-lg transition-transform hover:scale-105"
       >
-        <MessageCircle size={26} />
+        <svg
+          viewBox="0 0 32 32"
+          aria-hidden="true"
+          className="h-7 w-7 fill-current"
+        >
+          <path d="M16.04 3.2A12.77 12.77 0 0 0 5.1 22.54L3.2 29.6l7.23-1.88A12.75 12.75 0 1 0 16.04 3.2Zm0 2.31a10.44 10.44 0 0 1 8.87 15.97 10.42 10.42 0 0 1-13.8 3.91l-.52-.31-4.29 1.12 1.14-4.17-.34-.54A10.45 10.45 0 0 1 16.04 5.51Zm-4.63 5.82c-.23-.52-.48-.53-.7-.54h-.6c-.2 0-.54.08-.82.39-.28.31-1.08 1.05-1.08 2.56s1.1 2.97 1.26 3.18c.15.2 2.13 3.4 5.25 4.63 2.59 1.02 3.12.82 3.68.76.56-.05 1.82-.74 2.08-1.46.26-.72.26-1.34.18-1.47-.08-.13-.28-.21-.59-.36-.31-.15-1.82-.9-2.1-1-.28-.1-.49-.15-.7.16-.2.31-.8 1-.98 1.2-.18.2-.36.23-.67.08-.31-.15-1.3-.48-2.48-1.53-.92-.82-1.54-1.83-1.72-2.14-.18-.31-.02-.48.13-.63.14-.14.31-.36.46-.54.15-.18.2-.31.31-.51.1-.2.05-.39-.03-.54-.08-.15-.68-1.68-.96-2.3Z" />
+        </svg>
       </a>
     </>
   );
